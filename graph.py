@@ -12,7 +12,7 @@ class Graph:
     def dijkstra(self, s, t, parent):
 
         for id in parent.keys():
-            parent[id] = None  # guarda desde donde se visita cada nodo para recuperar el camino final
+            parent[id] = None  # almacena desde donde se visita cada nodo para recuperar el camino final
 
         cost_visited = dict()
 

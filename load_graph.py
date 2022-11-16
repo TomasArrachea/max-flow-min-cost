@@ -1,3 +1,5 @@
+from collections import deque 
+
 def load_file(file_name):
     tasks = dict()
 
@@ -19,64 +21,54 @@ def load_file(file_name):
     return tasks
 
 
-def compute_graph_size(tasks):
-    vertices = 2
-    for id, (cost_a, cost_b, dependencies) in tasks.items():
-        vertices += 3
-        for dep, dep_cost in dependencies:
-            vertices -= 1
-    return vertices
-
-
-def get_independent_tasks(tasks):
-    independents = dict()
-    for id, (cost_a, cost_b, dependencies) in tasks.items():
-        independents[id] = True
-
-    for id, (cost_a, cost_b, dependencies) in tasks.items():
-        for dep, dep_cost in dependencies:
-            independents[dep] = False
-    return independents
-
-
 def create_graph(tasks):
-    independents = get_independent_tasks(tasks)
-    costs = dict(); capacity = dict()
+    visited = set()
+    costs = dict()
+    capacity = dict()
 
-    # agregar nodos iniciales
-    costs["s"] = dict() # no pueden venir tasks con ese id
-    for id, idpt in independents.items():
-        if idpt == True:
-            costs['s'][id] = 0 # cada nodo guarda una lista de tuplas con los nodos que apunta y con que costo, NO CAPACIDAD porque en todos vale 1
-
-    # agregar nodos para tareas dependientes
-    for id in costs['s'].keys(): # para las tareas iniciales t1 y t4
-        cost_a, cost_b, dependencies = tasks[id]
-        costs[id] = {'A'+id: cost_a, 'B'+id: cost_b}
-
-        costs['A'+id] = dict()
-        costs['B'+id] = dict()
-
-        # ir encolando las dependencias de los nodos y se van poniendo una atras de la otra
-        queue = dependencies        
-        while len(queue) > 0:
-            id_dep, dep_cost = queue.pop(0)
-            cost_a, cost_b, dependencies = tasks[id_dep]
-            costs['A'+id]['A'+id_dep] = cost_a
-            costs['A'+id]['B'+id_dep] = cost_b+dep_cost
-            costs['B'+id]['A'+id_dep] = cost_a+dep_cost
-            costs['B'+id]['B'+id_dep] = cost_b
-
-            costs['A'+id_dep] = dict()
-            costs['B'+id_dep] = dict()
-            queue.extend(dependencies)
-            id = id_dep
-
-    # agregar nodo final
-    for id, dependencies in costs.items():
-        if len(dependencies) == 0:
-            dependencies['t'] = 0
+    costs['s'] = dict()
     costs['t'] = dict()
+
+    for id in tasks.keys():
+        if id not in visited:
+            # para cada nodo no visitado agregar todos los nodos del grafo de dependencias
+            costs['s'][id] = 0 
+            visited.add(id)
+            cost_a, cost_b, dependencies = tasks[id]
+            costs[id] = {'A'+id: cost_a, 'B'+id: cost_b}
+            costs['A'+id] = dict()
+            costs['B'+id] = dict()
+
+            queue = deque(dependencies)
+            while len(queue) > 0:
+                id_dep, dep_cost = queue.popleft()
+                visited.add(id_dep)
+                cost_a, cost_b, dependencies = tasks[id_dep]
+
+                costs['A'+id]['A'+id_dep] = cost_a
+                costs['A'+id]['B'+id_dep] = cost_b+dep_cost
+                costs['B'+id]['A'+id_dep] = cost_a+dep_cost
+                costs['B'+id]['B'+id_dep] = cost_b
+
+                costs['A'+id_dep] = dict()
+                costs['B'+id_dep] = dict()
+
+                # agregar dependencias siguientes
+                for dep in dependencies:
+                    if dep[0] not in visited:
+                        queue.append(dep)
+
+                # agregar dependencias previas
+                for id_task, (cost_a, cost_b, dependencies) in tasks.items():
+                    if id_task not in visited:
+                        for id_dep_prev, cost in dependencies:
+                            if id_dep_prev == id_dep:
+                                queue.append((id_task, cost))
+                id = id_dep
+
+            costs['A'+id]['t'] = 0
+            costs['B'+id]['t'] = 0
+            
 
     # crear grafo residual de capacidades
     for id in costs.keys():
