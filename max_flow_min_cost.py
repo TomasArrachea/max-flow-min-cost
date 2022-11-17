@@ -32,5 +32,4 @@ def main(argv):
     print(f"El equipo B debe realizar las tareas {team_B_tasks}")
     
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+main(sys.argv[1:])
