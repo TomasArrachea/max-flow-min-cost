@@ -10,7 +10,7 @@ def main(argv):
     except getopt.GetoptError:
         sys.exit(2)
 
-    file_name = "procesos2.txt"
+    file_name = "procesos.txt"
 
     for opt, arg in opts:
         if opt in ("-h", "--help"):
