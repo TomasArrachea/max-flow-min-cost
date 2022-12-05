@@ -1,7 +1,5 @@
 def max_flow_ford_fulkerson(graph, names):
-    # Create a residual graph and fill the residual graph with
-    # given capacities in the original graph as residual capacities
-    # in residual graph
+
     res_graph = [[0 for i in range(len(graph))]
                  for j in range(len(graph))]
 
@@ -9,35 +7,30 @@ def max_flow_ford_fulkerson(graph, names):
         for v in range(len(graph)):
             res_graph[u][v] = graph[u][v]
 
-    # This array is filled by BFS and to store path
     path = [None] * len(graph)
 
-    # Augment the flow while tere is path from source to sink
     max_flow = 0
-    condition, array = bfs(res_graph, 0, len(graph)-1, path)
-    while condition:
-        # Find minimum residual capacity of the edges along the
-        # path filled by BFS. Or we can say find the maximum flow
-        # through the path found.
+    exists_path, array = bfs(res_graph, 0, len(graph)-1, path)
+    while exists_path:
         path_flow = float("Inf")
         s = len(graph)-1
         while s != 0:
             path_flow = min(path_flow, res_graph[path[s]][s])
             s = path[s]
 
-        # Add path flow to overall flow
         max_flow += path_flow
 
-        # update residual capacities of the edges and reverse edges
-        # along the path
         v = len(graph)-1
         while v != 0:
             u = path[v]
             res_graph[u][v] -= path_flow
             res_graph[v][u] += path_flow
             v = path[v]
-        condition, array = bfs(res_graph, 0, len(graph)-1, path)
+
+        exists_path, array = bfs(res_graph, 0, len(graph)-1, path)
+
     team_a_tasks, team_b_tasks = get_tasks(array, names)
+
     return max_flow, team_a_tasks, team_b_tasks
 
 
@@ -54,39 +47,24 @@ def get_tasks(array, names):
     return team_a, team_b
 
 
-# Returns true if there is a path from source 's' to sink 't' in
-# residual graph. Also fills parent[] to store the path
-
-
+# Devuelve true si hay un camino desde s a t. Devuelve tambien el array de visitados
 def bfs(res_graph, s, t, parent):
 
-    # Mark all the vertices as not visited
     visited = [False]*(len(res_graph))
 
-    # Create a queue for BFS
     queue = []
 
-    # Mark the source node as visited and enqueue it
     queue.append(s)
     visited[s] = True
 
-    # Standard BFS Loop
     while queue:
-
-        # Dequeue a vertex from queue
         u = queue.pop(0)
-
-        # Get all adjacent vertices of the dequeued vertex u
-        # If a adjacent has not been visited, then mark it
-        # visited and enqueue it
         for ind, val in enumerate(res_graph[u]):
             if visited[ind] == False and val > 0:
                 queue.append(ind)
                 visited[ind] = True
                 parent[ind] = u
 
-    # If we reached sink in BFS starting from source, then return
-    # true, else false
     return (visited[t], visited)
 
 
@@ -97,14 +75,14 @@ def load_graph(file_name):
     size = len(lines)
     graph = [[0 for i in range(size+2)]
              for j in range(size+2)]
-    nombres = [0 for i in range(size+2)]
+    names = [0 for i in range(size+2)]
     graph_size = len(graph)
     indices = {}
     for i in lines:
         elements = i.split(",")
-        nombres[cont] = elements[0]
+        names[cont] = elements[0]
         indices[elements[0]] = cont
-        cont = cont + 1
+        cont += 1
     cont = 1
     for i in lines:
         i.replace("\n", "")
@@ -122,12 +100,4 @@ def load_graph(file_name):
             graph[idx_dependency][idx] = int(dependencies[cont_dep + 1])
             cont_dep = cont_dep + 2
 
-    # for i in graph:
-        # print(i)
-    return graph, nombres
-
-
-# graph = build_graph()
-# max_flow, bfs_t = max_flow_ford_fulkerson(graph)
-# print("max_flow ", max_flow)
-# print(bfs_t)
+    return graph, names
