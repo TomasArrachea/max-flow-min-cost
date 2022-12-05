@@ -1,4 +1,4 @@
-from graph_tda import load_graph, max_flow_ford_fulkerson
+from graph import load_graph, max_flow_ford_fulkerson
 import getopt
 import sys
 
@@ -10,7 +10,7 @@ def main(argv):
     except getopt.GetoptError:
         sys.exit(2)
 
-    file_name = "procesos.txt"
+    file_name = "procesos2.txt"
 
     for opt, arg in opts:
         if opt in ("-h", "--help"):
